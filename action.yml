@@ -4,10 +4,10 @@ author: "azutake"
 inputs:
   base:
     required: true
-    description: "base repository name"
+    description: "base branch name"
   head:
     required: true
-    description: "head repository name"
+    description: "head branch name"
   release-issue-id:
     required: true
     description: "comment destination issue"
