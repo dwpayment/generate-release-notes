@@ -1,11 +1,22 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: "Generate release notes"
+description: "generate release notes and comment to release issue"
+author: "azutake"
 inputs:
-  milliseconds: # change this
+  base:
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+    description: "base repository name"
+  head:
+    required: true
+    description: "head repository name"
+  release-issue-id:
+    required: true
+    description: "comment destination issue"
+  #comment-template:
+  #  required: false
+  #  description: "template markdown file"
+  token:
+    description: "GITHUB_TOKEN or a repo scoped PAT."
+    default: ${{ github.token }}
 runs:
-  using: 'node16'
-  main: 'dist/index.js'
+  using: "node16"
+  main: "dist/index.js"
