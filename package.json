@@ -1,8 +1,8 @@
 {
-  "name": "typescript-action",
-  "version": "0.0.0",
+  "name": "generate-release-notes",
+  "version": "1.0.0",
   "private": true,
-  "description": "TypeScript template action",
+  "description": "Generate release notes",
   "main": "lib/main.js",
   "scripts": {
     "build": "tsc",
@@ -34,6 +34,7 @@
     "@types/js-yaml": "^4.0.5",
     "@types/mustache": "^4.2.2",
     "@types/node": "^18.15.10",
+    "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.56.0",
     "@vercel/ncc": "^0.36.1",
     "eslint": "^8.36.0",

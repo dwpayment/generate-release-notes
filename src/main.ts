@@ -11,15 +11,37 @@ async function run(): Promise<void> {
     const token = core.getInput("token")
     const kit = github.getOctokit(token)
 
-    //TODO: feature
-    //TODO: bug
-    //TODO: chore
-    //TODO: documentation
-    //TODO: migration needed
+    const comments = (
+      await kit.rest.issues.listComments({
+        owner: github.context.issue.owner,
+        repo: github.context.issue.repo,
+        issue_number: github.context.issue.number
+      })
+    ).data
+
+    const commentCtx = {
+      owner: github.context.issue.owner,
+      repo: github.context.issue.repo
+    }
+
+    const baseCommitCommented = comments.find(
+      c => c.user?.type === "bot" && c.body?.includes("BASE_COMMIT: ")
+    )
+
+    const baseCommitId = baseCommitCommented?.body
+      ? baseCommitCommented.body.replace("BASE_COMMIT: ", "")
+      : await execute(`git rev-parse ${base}`)
+
+    if (!baseCommitCommented)
+      await kit.rest.issues.createComment({
+        issue_number: issueId,
+        ...commentCtx,
+        body: `BASE_COMMIT: ${baseCommitId}`
+      })
 
     const numbers = (
       await execute(
-        `/bin/bash -c \"git log --merges ${base}..${head} --first-parent --grep='Merge pull request #' --format='%s' | sed -n 's/^.*Merge pull request #\\s*\\([0-9]*\\).*$/\\1/p'\"`
+        `/bin/bash -c "git log --merges ${baseCommitId}..${head} --first-parent --grep='Merge pull request #' --format='%s' | sed -n 's/^.*Merge pull request #\\s*\\([0-9]*\\).*$/\\1/p'"`
       )
     ).split("\n")
 
@@ -27,7 +49,7 @@ async function run(): Promise<void> {
       await Promise.allSettled(
         numbers
           .map(num => Number(num))
-          .map(num =>
+          .map(async num =>
             kit.rest.pulls.get({
               owner: github.context.repo.owner,
               repo: github.context.repo.repo,
@@ -61,7 +83,7 @@ async function run(): Promise<void> {
 
     let body = "今回のリリースで投入されるPRは以下の通りです。\n\n"
 
-    const addBodySegment = (name: string, requests: typeof prs) => {
+    const addBodySegment = (name: string, requests: typeof prs): void => {
       if (!requests) return
       body += [
         `## ${name}\n\n`,
@@ -79,28 +101,23 @@ async function run(): Promise<void> {
 
     body += "by generate-release-notes"
 
-    const comments = (
-      await kit.rest.issues.listComments({
-        owner: github.context.issue.owner,
-        repo: github.context.issue.repo,
-        issue_number: github.context.issue.number
-      })
-    ).data
-
     const commented = comments.find(
       c =>
         c.user?.type === "bot" && c.body?.includes("by generate-release-notes")
     )
 
-    const ctx = {
-      owner: github.context.issue.owner,
-      repo: github.context.issue.repo,
-      body: body
-    }
+    const releaseNotesCtx = { ...commentCtx, body }
 
     if (commented)
-      await kit.rest.issues.updateComment({ comment_id: commented.id, ...ctx })
-    else await kit.rest.issues.createComment({ issue_number: issueId, ...ctx })
+      await kit.rest.issues.updateComment({
+        comment_id: commented.id,
+        ...releaseNotesCtx
+      })
+    else
+      await kit.rest.issues.createComment({
+        issue_number: issueId,
+        ...releaseNotesCtx
+      })
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }

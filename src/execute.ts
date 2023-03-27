@@ -9,7 +9,7 @@ export const execute = async (command: string): Promise<string> => {
       output += data.toString()
     },
     stderr: (data: Buffer) => {
-      console.error(data)
+      console.error(data) // eslint-disable-line no-console
     }
   }
   await exec.exec(command, undefined, options)
