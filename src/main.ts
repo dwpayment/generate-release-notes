@@ -31,7 +31,7 @@ async function run(): Promise<void> {
     )
 
     const baseCommitId = baseCommitCommented?.body
-      ? baseCommitCommented.body.replace("BASE_COMMIT: ", "")
+      ? baseCommitCommented.body.replace("BASE_COMMIT: ", "").replace("\n", "")
       : await execute(`git rev-parse ${base}`)
 
     if (!baseCommitCommented)
