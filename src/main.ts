@@ -30,9 +30,13 @@ async function run(): Promise<void> {
       c => c.user?.type === "bot" && c.body?.includes("BASE_COMMIT: ")
     )
 
-    const baseCommitId = baseCommitCommented?.body
-      ? baseCommitCommented.body.replace("BASE_COMMIT: ", "").replace("\n", "")
-      : await execute(`git rev-parse ${base}`)
+    const baseCommitId = (
+      baseCommitCommented?.body
+        ? baseCommitCommented.body.replace("BASE_COMMIT: ", "")
+        : await execute(`git rev-parse ${base}`)
+    ).replace("\n", "")
+
+    core.info(JSON.stringify(baseCommitId))
 
     if (!baseCommitCommented)
       await kit.rest.issues.createComment({

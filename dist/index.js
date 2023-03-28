@@ -120,9 +120,10 @@ function run() {
                 repo: github.context.issue.repo
             };
             const baseCommitCommented = comments.find(c => { var _a, _b; return ((_a = c.user) === null || _a === void 0 ? void 0 : _a.type) === "bot" && ((_b = c.body) === null || _b === void 0 ? void 0 : _b.includes("BASE_COMMIT: ")); });
-            const baseCommitId = (baseCommitCommented === null || baseCommitCommented === void 0 ? void 0 : baseCommitCommented.body)
-                ? baseCommitCommented.body.replace("BASE_COMMIT: ", "").replace("\n", "")
-                : yield (0, execute_1.execute)(`git rev-parse ${base}`);
+            const baseCommitId = ((baseCommitCommented === null || baseCommitCommented === void 0 ? void 0 : baseCommitCommented.body)
+                ? baseCommitCommented.body.replace("BASE_COMMIT: ", "")
+                : yield (0, execute_1.execute)(`git rev-parse ${base}`)).replace("\n", "");
+            core.info(JSON.stringify(baseCommitId));
             if (!baseCommitCommented)
                 yield kit.rest.issues.createComment(Object.assign(Object.assign({ issue_number: issueId }, commentCtx), { body: `BASE_COMMIT: ${baseCommitId}` }));
             const numbers = (yield (0, execute_1.execute)(`/bin/bash -c "git log --merges ${baseCommitId}..${head} --first-parent --grep='Merge pull request #' --format='%s' | sed -n 's/^.*Merge pull request #\\s*\\([0-9]*\\).*$/\\1/p'"`)).split("\n");
