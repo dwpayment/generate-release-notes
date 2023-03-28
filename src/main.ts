@@ -4,11 +4,13 @@ import { execute } from "./execute"
 
 async function run(): Promise<void> {
   try {
-    const base = core.getInput("base")
-    const head = core.getInput("head")
-    const issueId = Number(core.getInput("release-issue-id"))
+    const base = core.getInput("base", { required: true })
+    const head = core.getInput("head", { required: true })
+    const issueId = Number(
+      core.getInput("release-issue-id", { required: true })
+    )
     //const template = core.getInput("comment-template")
-    const token = core.getInput("token")
+    const token = core.getInput("token", { required: true })
     const kit = github.getOctokit(token)
 
     const comments = (
@@ -84,7 +86,7 @@ async function run(): Promise<void> {
     let body = "今回のリリースで投入されるPRは以下の通りです。\n\n"
 
     const addBodySegment = (name: string, requests: typeof prs): void => {
-      if (!requests) return
+      if (!requests.some(_ => true)) return
       body += [
         `## ${name}\n\n`,
         requests.map(r => `* ${r.data.title}`).join("\n"),
