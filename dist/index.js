@@ -104,11 +104,11 @@ const execute_1 = __nccwpck_require__(3532);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const base = core.getInput("base");
-            const head = core.getInput("head");
-            const issueId = Number(core.getInput("release-issue-id"));
+            const base = core.getInput("base", { required: true });
+            const head = core.getInput("head", { required: true });
+            const issueId = Number(core.getInput("release-issue-id", { required: true }));
             //const template = core.getInput("comment-template")
-            const token = core.getInput("token");
+            const token = core.getInput("token", { required: true });
             const kit = github.getOctokit(token);
             const comments = (yield kit.rest.issues.listComments({
                 owner: github.context.issue.owner,
@@ -149,7 +149,7 @@ function run() {
             const migrations = prs.filter(pr => pr.data.labels.some(l => l.name === "migration needed"));
             let body = "今回のリリースで投入されるPRは以下の通りです。\n\n";
             const addBodySegment = (name, requests) => {
-                if (!requests)
+                if (!requests.some(_ => true))
                     return;
                 body += [
                     `## ${name}\n\n`,
