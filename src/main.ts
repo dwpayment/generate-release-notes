@@ -28,7 +28,7 @@ async function run(): Promise<void> {
     }
 
     const baseCommitCommented = comments.find(
-      c => c.user?.type === "bot" && c.body?.includes("BASE_COMMIT: ")
+      c => c.user?.type === "Bot" && c.body?.includes("BASE_COMMIT: ")
     )
 
     const baseCommitId = (
@@ -92,7 +92,7 @@ async function run(): Promise<void> {
       if (!requests.some(_ => true)) return
       body += [
         `## ${name}\n\n`,
-        requests.map(r => `* ${r.data.title}`).join("\n"),
+        requests.map(r => `* #${r.data.number}`).join("\n"),
         "\n\n"
       ].join("")
     }
@@ -138,7 +138,7 @@ async function run(): Promise<void> {
 
     const commented = comments.find(
       c =>
-        c.user?.type === "bot" && c.body?.includes("by generate-release-notes")
+        c.user?.type === "Bot" && c.body?.includes("by generate-release-notes")
     )
 
     const releaseNotesCtx = { ...commentCtx, body }

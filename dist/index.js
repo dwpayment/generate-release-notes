@@ -123,7 +123,7 @@ function run() {
                 owner: github.context.issue.owner,
                 repo: github.context.issue.repo
             };
-            const baseCommitCommented = comments.find(c => { var _a, _b; return ((_a = c.user) === null || _a === void 0 ? void 0 : _a.type) === "bot" && ((_b = c.body) === null || _b === void 0 ? void 0 : _b.includes("BASE_COMMIT: ")); });
+            const baseCommitCommented = comments.find(c => { var _a, _b; return ((_a = c.user) === null || _a === void 0 ? void 0 : _a.type) === "Bot" && ((_b = c.body) === null || _b === void 0 ? void 0 : _b.includes("BASE_COMMIT: ")); });
             const baseCommitId = ((baseCommitCommented === null || baseCommitCommented === void 0 ? void 0 : baseCommitCommented.body)
                 ? baseCommitCommented.body.replace("BASE_COMMIT: ", "")
                 : yield (0, execute_1.execute)(`git rev-parse ${base}`)).replace("\n", "");
@@ -157,7 +157,7 @@ function run() {
                     return;
                 body += [
                     `## ${name}\n\n`,
-                    requests.map(r => `* ${r.data.title}`).join("\n"),
+                    requests.map(r => `* #${r.data.number}`).join("\n"),
                     "\n\n"
                 ].join("");
             };
@@ -176,7 +176,7 @@ function run() {
             others = lodash_1.default.difference(others, migrations.map(pr => pr.data.number));
             addBodySegment("その他", prs.filter(pr => others.includes(pr.data.number)));
             body += "by generate-release-notes";
-            const commented = comments.find(c => { var _a, _b; return ((_a = c.user) === null || _a === void 0 ? void 0 : _a.type) === "bot" && ((_b = c.body) === null || _b === void 0 ? void 0 : _b.includes("by generate-release-notes")); });
+            const commented = comments.find(c => { var _a, _b; return ((_a = c.user) === null || _a === void 0 ? void 0 : _a.type) === "Bot" && ((_b = c.body) === null || _b === void 0 ? void 0 : _b.includes("by generate-release-notes")); });
             const releaseNotesCtx = Object.assign(Object.assign({}, commentCtx), { body });
             if (commented)
                 yield kit.rest.issues.updateComment(Object.assign({ comment_id: commented.id }, releaseNotesCtx));
