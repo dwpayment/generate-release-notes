@@ -8,6 +8,10 @@ inputs:
   head:
     required: true
     description: "head branch name"
+  test-procedure-comment:
+    required: false
+    default: "false"
+    description: "is comment test procedure"
   #comment-template:
   #  required: false
   #  description: "template markdown file"
