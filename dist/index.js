@@ -106,6 +106,7 @@ const github = __importStar(__nccwpck_require__(5438));
 const execute_1 = __nccwpck_require__(3532);
 const lodash_1 = __importDefault(__nccwpck_require__(250));
 function run() {
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const base = core.getInput("base", { required: true });
@@ -113,34 +114,31 @@ function run() {
             //const template = core.getInput("comment-template")
             const token = core.getInput("token", { required: true });
             const kit = github.getOctokit(token);
-            core.info(JSON.stringify(github.context));
-            const issues = yield kit.rest.issues.list({
-                owner: github.context.repo.owner,
-                repo: github.context.repo.repo,
-                labels: "release",
-                state: "open"
-            });
-            for (const issue of issues.data) {
-                const comments = (yield kit.rest.issues.listComments({
-                    owner: github.context.repo.owner,
-                    repo: github.context.repo.repo,
-                    issue_number: issue.number
-                })).data;
-                const commentCtx = {
-                    owner: github.context.repo.owner,
-                    repo: github.context.repo.repo
-                };
+            const { repo } = github.context;
+            let issues = [];
+            if ((_a = github.context.issue) === null || _a === void 0 ? void 0 : _a.number) {
+                core.info(`Payload issue: #${(_b = github.context.issue) === null || _b === void 0 ? void 0 : _b.number}`);
+                const remoteIssue = (yield kit.rest.issues.get(Object.assign(Object.assign({}, repo), { issue_number: github.context.issue.number }))).data;
+                // Ignore closed PR/issues
+                if (remoteIssue.state === "open") {
+                    issues = [remoteIssue];
+                }
+            }
+            if (!issues.some(_ => true))
+                issues = (yield kit.rest.issues.listForRepo(Object.assign(Object.assign({}, repo), { labels: "release", state: "open" }))).data;
+            for (const issue of issues) {
+                const comments = (yield kit.rest.issues.listComments(Object.assign(Object.assign({}, repo), { issue_number: issue.number }))).data;
                 const baseCommitCommented = comments.find(c => { var _a, _b; return ((_a = c.user) === null || _a === void 0 ? void 0 : _a.type) === "Bot" && ((_b = c.body) === null || _b === void 0 ? void 0 : _b.includes("BASE_COMMIT: ")); });
                 const baseCommitId = ((baseCommitCommented === null || baseCommitCommented === void 0 ? void 0 : baseCommitCommented.body)
                     ? baseCommitCommented.body.replace("BASE_COMMIT: ", "")
                     : yield (0, execute_1.execute)(`git rev-parse ${base}`)).replace("\n", "");
                 if (!baseCommitCommented)
-                    yield kit.rest.issues.createComment(Object.assign(Object.assign({ issue_number: issue.number }, commentCtx), { body: `BASE_COMMIT: ${baseCommitId}` }));
+                    yield kit.rest.issues.createComment(Object.assign(Object.assign({ issue_number: issue.number }, repo), { body: `BASE_COMMIT: ${baseCommitId}` }));
                 const numbers = (yield (0, execute_1.execute)(`/bin/bash -c "git log --merges ${baseCommitId}..${head} --first-parent --grep='Merge pull request #' --format='%s' | sed -n 's/^.*Merge pull request #\\s*\\([0-9]*\\).*$/\\1/p'"`)).split("\n");
                 const prs = (yield Promise.allSettled(numbers
                     .map(num => Number(num))
                     .map((num) => __awaiter(this, void 0, void 0, function* () {
-                    return kit.rest.pulls.get(Object.assign(Object.assign({}, commentCtx), { pull_number: num }));
+                    return kit.rest.pulls.get(Object.assign(Object.assign({}, repo), { pull_number: num }));
                 }))))
                     .filter(pr => pr.status === "fulfilled")
                     .map(pr => {
@@ -184,7 +182,7 @@ function run() {
                     return ((_a = c.user) === null || _a === void 0 ? void 0 : _a.type) === "Bot" &&
                         ((_b = c.body) === null || _b === void 0 ? void 0 : _b.includes("by generate-release-notes"));
                 });
-                const releaseNotesCtx = Object.assign(Object.assign({}, commentCtx), { body });
+                const releaseNotesCtx = Object.assign(Object.assign({}, repo), { body });
                 if (commented)
                     yield kit.rest.issues.updateComment(Object.assign({ comment_id: commented.id }, releaseNotesCtx));
                 else

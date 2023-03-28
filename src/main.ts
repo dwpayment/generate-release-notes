@@ -3,6 +3,8 @@ import * as github from "@actions/github"
 import { execute } from "./execute"
 import lodash from "lodash"
 
+type UnwrapPromise<T> = T extends PromiseLike<infer U> ? U : T
+
 async function run(): Promise<void> {
   try {
     const base = core.getInput("base", { required: true })
@@ -11,28 +13,42 @@ async function run(): Promise<void> {
     const token = core.getInput("token", { required: true })
     const kit = github.getOctokit(token)
 
-    core.info(JSON.stringify(github.context))
+    type Issue = UnwrapPromise<ReturnType<typeof kit.rest.issues.get>>["data"]
 
-    const issues = await kit.rest.issues.list({
-      owner: github.context.repo.owner,
-      repo: github.context.repo.repo,
-      labels: "release",
-      state: "open"
-    })
+    const { repo } = github.context
+    let issues: Issue[] = []
 
-    for (const issue of issues.data) {
-      const comments = (
-        await kit.rest.issues.listComments({
-          owner: github.context.repo.owner,
-          repo: github.context.repo.repo,
-          issue_number: issue.number
+    if (github.context.issue?.number) {
+      core.info(`Payload issue: #${github.context.issue?.number}`)
+      const remoteIssue = (
+        await kit.rest.issues.get({
+          ...repo,
+          issue_number: github.context.issue.number
         })
       ).data
 
-      const commentCtx = {
-        owner: github.context.repo.owner,
-        repo: github.context.repo.repo
+      // Ignore closed PR/issues
+      if (remoteIssue.state === "open") {
+        issues = [remoteIssue]
       }
+    }
+
+    if (!issues.some(_ => true))
+      issues = (
+        await kit.rest.issues.listForRepo({
+          ...repo,
+          labels: "release",
+          state: "open"
+        })
+      ).data
+
+    for (const issue of issues) {
+      const comments = (
+        await kit.rest.issues.listComments({
+          ...repo,
+          issue_number: issue.number
+        })
+      ).data
 
       const baseCommitCommented = comments.find(
         c => c.user?.type === "Bot" && c.body?.includes("BASE_COMMIT: ")
@@ -47,7 +63,7 @@ async function run(): Promise<void> {
       if (!baseCommitCommented)
         await kit.rest.issues.createComment({
           issue_number: issue.number,
-          ...commentCtx,
+          ...repo,
           body: `BASE_COMMIT: ${baseCommitId}`
         })
 
@@ -63,7 +79,7 @@ async function run(): Promise<void> {
             .map(num => Number(num))
             .map(async num =>
               kit.rest.pulls.get({
-                ...commentCtx,
+                ...repo,
                 pull_number: num
               })
             )
@@ -150,7 +166,7 @@ async function run(): Promise<void> {
           c.body?.includes("by generate-release-notes")
       )
 
-      const releaseNotesCtx = { ...commentCtx, body }
+      const releaseNotesCtx = { ...repo, body }
 
       if (commented)
         await kit.rest.issues.updateComment({
