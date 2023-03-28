@@ -175,7 +175,7 @@ function run() {
             others = lodash_1.default.difference(others, tests.map(pr => pr.data.number));
             others = lodash_1.default.difference(others, migrations.map(pr => pr.data.number));
             addBodySegment("その他", prs.filter(pr => others.includes(pr.data.number)));
-            body += "by generate-release-notes";
+            body += `<div align="right"><sup><sub>by generate-release-notes</sub></sup></div>`;
             const commented = comments.find(c => { var _a, _b; return ((_a = c.user) === null || _a === void 0 ? void 0 : _a.type) === "Bot" && ((_b = c.body) === null || _b === void 0 ? void 0 : _b.includes("by generate-release-notes")); });
             const releaseNotesCtx = Object.assign(Object.assign({}, commentCtx), { body });
             if (commented)

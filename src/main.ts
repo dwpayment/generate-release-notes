@@ -134,7 +134,7 @@ async function run(): Promise<void> {
       prs.filter(pr => others.includes(pr.data.number))
     )
 
-    body += "by generate-release-notes"
+    body += `<div align="right"><sup><sub>by generate-release-notes</sub></sup></div>`
 
     const commented = comments.find(
       c =>
