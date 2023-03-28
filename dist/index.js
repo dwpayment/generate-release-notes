@@ -110,78 +110,85 @@ function run() {
         try {
             const base = core.getInput("base", { required: true });
             const head = core.getInput("head", { required: true });
-            const issueId = Number(core.getInput("release-issue-id", { required: true }));
             //const template = core.getInput("comment-template")
             const token = core.getInput("token", { required: true });
             const kit = github.getOctokit(token);
-            const comments = (yield kit.rest.issues.listComments({
-                owner: github.context.issue.owner,
-                repo: github.context.issue.repo,
-                issue_number: github.context.issue.number
-            })).data;
-            const commentCtx = {
-                owner: github.context.issue.owner,
-                repo: github.context.issue.repo
-            };
-            const baseCommitCommented = comments.find(c => { var _a, _b; return ((_a = c.user) === null || _a === void 0 ? void 0 : _a.type) === "Bot" && ((_b = c.body) === null || _b === void 0 ? void 0 : _b.includes("BASE_COMMIT: ")); });
-            const baseCommitId = ((baseCommitCommented === null || baseCommitCommented === void 0 ? void 0 : baseCommitCommented.body)
-                ? baseCommitCommented.body.replace("BASE_COMMIT: ", "")
-                : yield (0, execute_1.execute)(`git rev-parse ${base}`)).replace("\n", "");
-            if (!baseCommitCommented)
-                yield kit.rest.issues.createComment(Object.assign(Object.assign({ issue_number: issueId }, commentCtx), { body: `BASE_COMMIT: ${baseCommitId}` }));
-            const numbers = (yield (0, execute_1.execute)(`/bin/bash -c "git log --merges ${baseCommitId}..${head} --first-parent --grep='Merge pull request #' --format='%s' | sed -n 's/^.*Merge pull request #\\s*\\([0-9]*\\).*$/\\1/p'"`)).split("\n");
-            const prs = (yield Promise.allSettled(numbers
-                .map(num => Number(num))
-                .map((num) => __awaiter(this, void 0, void 0, function* () {
-                return kit.rest.pulls.get({
+            const issues = yield kit.rest.issues.list({
+                owner: github.context.repo.owner,
+                repo: github.context.repo.repo,
+                labels: "release",
+                state: "open"
+            });
+            for (const issue of issues.data) {
+                const comments = (yield kit.rest.issues.listComments({
                     owner: github.context.repo.owner,
                     repo: github.context.repo.repo,
-                    pull_number: num
+                    issue_number: issue.number
+                })).data;
+                const commentCtx = {
+                    owner: github.context.repo.owner,
+                    repo: github.context.repo.repo
+                };
+                const baseCommitCommented = comments.find(c => { var _a, _b; return ((_a = c.user) === null || _a === void 0 ? void 0 : _a.type) === "Bot" && ((_b = c.body) === null || _b === void 0 ? void 0 : _b.includes("BASE_COMMIT: ")); });
+                const baseCommitId = ((baseCommitCommented === null || baseCommitCommented === void 0 ? void 0 : baseCommitCommented.body)
+                    ? baseCommitCommented.body.replace("BASE_COMMIT: ", "")
+                    : yield (0, execute_1.execute)(`git rev-parse ${base}`)).replace("\n", "");
+                if (!baseCommitCommented)
+                    yield kit.rest.issues.createComment(Object.assign(Object.assign({ issue_number: issue.number }, commentCtx), { body: `BASE_COMMIT: ${baseCommitId}` }));
+                const numbers = (yield (0, execute_1.execute)(`/bin/bash -c "git log --merges ${baseCommitId}..${head} --first-parent --grep='Merge pull request #' --format='%s' | sed -n 's/^.*Merge pull request #\\s*\\([0-9]*\\).*$/\\1/p'"`)).split("\n");
+                const prs = (yield Promise.allSettled(numbers
+                    .map(num => Number(num))
+                    .map((num) => __awaiter(this, void 0, void 0, function* () {
+                    return kit.rest.pulls.get(Object.assign(Object.assign({}, commentCtx), { pull_number: num }));
+                }))))
+                    .filter(pr => pr.status === "fulfilled")
+                    .map(pr => {
+                    if (pr.status === "rejected")
+                        throw new Error(); // HACK
+                    return pr.value;
                 });
-            }))))
-                .filter(pr => pr.status === "fulfilled")
-                .map(pr => {
-                if (pr.status === "rejected")
-                    throw new Error(); // HACK
-                return pr.value;
-            });
-            const features = prs.filter(pr => pr.data.labels.some(l => l.name === "enhancement"));
-            const bugs = prs.filter(pr => pr.data.labels.some(l => l.name === "bug"));
-            const chores = prs.filter(pr => pr.data.labels.some(l => l.name === "chore" || l.name === "style"));
-            const refactors = prs.filter(pr => pr.data.labels.some(l => l.name === "refactor"));
-            const tests = prs.filter(pr => pr.data.labels.some(l => l.name === "test"));
-            const migrations = prs.filter(pr => pr.data.labels.some(l => l.name === "migration needed"));
-            let body = "今回のリリースで投入されるPRは以下の通りです。\n\n";
-            const addBodySegment = (name, requests) => {
-                if (!requests.some(_ => true))
-                    return;
-                body += [
-                    `## ${name}\n\n`,
-                    requests.map(r => `* #${r.data.number}`).join("\n"),
-                    "\n\n"
-                ].join("");
-            };
-            addBodySegment("機能実装", features);
-            addBodySegment("不具合修正", bugs);
-            addBodySegment("開発環境整備", chores);
-            addBodySegment("リファクタリング", refactors);
-            addBodySegment("テスト", tests);
-            addBodySegment("マイグレーション必須", migrations);
-            let others = prs.map(pr => pr.data.number);
-            others = lodash_1.default.difference(others, features.map(pr => pr.data.number));
-            others = lodash_1.default.difference(others, bugs.map(pr => pr.data.number));
-            others = lodash_1.default.difference(others, chores.map(pr => pr.data.number));
-            others = lodash_1.default.difference(others, refactors.map(pr => pr.data.number));
-            others = lodash_1.default.difference(others, tests.map(pr => pr.data.number));
-            others = lodash_1.default.difference(others, migrations.map(pr => pr.data.number));
-            addBodySegment("その他", prs.filter(pr => others.includes(pr.data.number)));
-            body += `<div align="right"><sup><sub>by generate-release-notes</sub></sup></div>`;
-            const commented = comments.find(c => { var _a, _b; return ((_a = c.user) === null || _a === void 0 ? void 0 : _a.type) === "Bot" && ((_b = c.body) === null || _b === void 0 ? void 0 : _b.includes("by generate-release-notes")); });
-            const releaseNotesCtx = Object.assign(Object.assign({}, commentCtx), { body });
-            if (commented)
-                yield kit.rest.issues.updateComment(Object.assign({ comment_id: commented.id }, releaseNotesCtx));
-            else
-                yield kit.rest.issues.createComment(Object.assign({ issue_number: issueId }, releaseNotesCtx));
+                const features = prs.filter(pr => pr.data.labels.some(l => l.name === "enhancement"));
+                const bugs = prs.filter(pr => pr.data.labels.some(l => l.name === "bug"));
+                const chores = prs.filter(pr => pr.data.labels.some(l => l.name === "chore" || l.name === "style"));
+                const refactors = prs.filter(pr => pr.data.labels.some(l => l.name === "refactor"));
+                const tests = prs.filter(pr => pr.data.labels.some(l => l.name === "test"));
+                const migrations = prs.filter(pr => pr.data.labels.some(l => l.name === "migration needed"));
+                let body = "今回のリリースで投入されるPRは以下の通りです。\n\n";
+                const addBodySegment = (name, requests) => {
+                    if (!requests.some(_ => true))
+                        return;
+                    body += [
+                        `## ${name}\n\n`,
+                        requests.map(r => `* #${r.data.number}`).join("\n"),
+                        "\n\n"
+                    ].join("");
+                };
+                addBodySegment("機能実装", features);
+                addBodySegment("不具合修正", bugs);
+                addBodySegment("開発環境整備", chores);
+                addBodySegment("リファクタリング", refactors);
+                addBodySegment("テスト", tests);
+                addBodySegment("マイグレーション必須", migrations);
+                let others = prs.map(pr => pr.data.number);
+                others = lodash_1.default.difference(others, features.map(pr => pr.data.number));
+                others = lodash_1.default.difference(others, bugs.map(pr => pr.data.number));
+                others = lodash_1.default.difference(others, chores.map(pr => pr.data.number));
+                others = lodash_1.default.difference(others, refactors.map(pr => pr.data.number));
+                others = lodash_1.default.difference(others, tests.map(pr => pr.data.number));
+                others = lodash_1.default.difference(others, migrations.map(pr => pr.data.number));
+                addBodySegment("その他", prs.filter(pr => others.includes(pr.data.number)));
+                body += `<div align="right"><sup><sub>by generate-release-notes</sub></sup></div>`;
+                const commented = comments.find(c => {
+                    var _a, _b;
+                    return ((_a = c.user) === null || _a === void 0 ? void 0 : _a.type) === "Bot" &&
+                        ((_b = c.body) === null || _b === void 0 ? void 0 : _b.includes("by generate-release-notes"));
+                });
+                const releaseNotesCtx = Object.assign(Object.assign({}, commentCtx), { body });
+                if (commented)
+                    yield kit.rest.issues.updateComment(Object.assign({ comment_id: commented.id }, releaseNotesCtx));
+                else
+                    yield kit.rest.issues.createComment(Object.assign({ issue_number: issue.number }, releaseNotesCtx));
+            }
         }
         catch (error) {
             if (error instanceof Error)
