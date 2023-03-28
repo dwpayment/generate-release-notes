@@ -1,6 +1,7 @@
 import * as core from "@actions/core"
 import * as github from "@actions/github"
 import { execute } from "./execute"
+import lodash from "lodash"
 
 async function run(): Promise<void> {
   try {
@@ -35,8 +36,6 @@ async function run(): Promise<void> {
         ? baseCommitCommented.body.replace("BASE_COMMIT: ", "")
         : await execute(`git rev-parse ${base}`)
     ).replace("\n", "")
-
-    core.info(JSON.stringify(baseCommitId))
 
     if (!baseCommitCommented)
       await kit.rest.issues.createComment({
@@ -78,7 +77,7 @@ async function run(): Promise<void> {
     const chores = prs.filter(pr =>
       pr.data.labels.some(l => l.name === "chore" || l.name === "style")
     )
-    const refactor = prs.filter(pr =>
+    const refactors = prs.filter(pr =>
       pr.data.labels.some(l => l.name === "refactor")
     )
     const tests = prs.filter(pr => pr.data.labels.some(l => l.name === "test"))
@@ -101,9 +100,39 @@ async function run(): Promise<void> {
     addBodySegment("機能実装", features)
     addBodySegment("不具合修正", bugs)
     addBodySegment("開発環境整備", chores)
-    addBodySegment("リファクタリング", refactor)
+    addBodySegment("リファクタリング", refactors)
     addBodySegment("テスト", tests)
     addBodySegment("マイグレーション必須", migrations)
+
+    let others: number[] = prs.map(pr => pr.data.number)
+    others = lodash.difference(
+      others,
+      features.map(pr => pr.data.number)
+    )
+    others = lodash.difference(
+      others,
+      bugs.map(pr => pr.data.number)
+    )
+    others = lodash.difference(
+      others,
+      chores.map(pr => pr.data.number)
+    )
+    others = lodash.difference(
+      others,
+      refactors.map(pr => pr.data.number)
+    )
+    others = lodash.difference(
+      others,
+      tests.map(pr => pr.data.number)
+    )
+    others = lodash.difference(
+      others,
+      migrations.map(pr => pr.data.number)
+    )
+    addBodySegment(
+      "その他",
+      prs.filter(pr => others.includes(pr.data.number))
+    )
 
     body += "by generate-release-notes"
 
