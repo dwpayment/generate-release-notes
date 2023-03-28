@@ -11,6 +11,8 @@ async function run(): Promise<void> {
     const token = core.getInput("token", { required: true })
     const kit = github.getOctokit(token)
 
+    core.info(JSON.stringify(github.context))
+
     const issues = await kit.rest.issues.list({
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
