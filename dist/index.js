@@ -217,6 +217,7 @@ function generateReleaseNotes(base, head, kit, comments, issue) {
         const chores = prs.filter(pr => pr.data.labels.some(l => l.name === "chore" || l.name === "style"));
         const refactors = prs.filter(pr => pr.data.labels.some(l => l.name === "refactor"));
         const tests = prs.filter(pr => pr.data.labels.some(l => l.name === "test"));
+        const documentations = prs.filter(pr => pr.data.labels.some(l => l.name === "documentation"));
         const migrations = prs.filter(pr => pr.data.labels.some(l => l.name === "migration needed"));
         let body = "今回のリリースで投入されるPRは以下の通りです。\n\n";
         const addBodySegment = (name, requests) => {
@@ -233,6 +234,7 @@ function generateReleaseNotes(base, head, kit, comments, issue) {
         addBodySegment("開発環境整備", chores);
         addBodySegment("リファクタリング", refactors);
         addBodySegment("テスト", tests);
+        addBodySegment("ドキュメント", documentations);
         addBodySegment("マイグレーション必須", migrations);
         let others = prs.map(pr => pr.data.number);
         others = lodash_1.default.difference(others, features.map(pr => pr.data.number));
@@ -240,6 +242,7 @@ function generateReleaseNotes(base, head, kit, comments, issue) {
         others = lodash_1.default.difference(others, chores.map(pr => pr.data.number));
         others = lodash_1.default.difference(others, refactors.map(pr => pr.data.number));
         others = lodash_1.default.difference(others, tests.map(pr => pr.data.number));
+        others = lodash_1.default.difference(others, documentations.map(pr => pr.data.number));
         others = lodash_1.default.difference(others, migrations.map(pr => pr.data.number));
         addBodySegment("その他", prs.filter(pr => others.includes(pr.data.number)));
         body += `<div align="right"><sup><sub>by generate-release-notes</sub></sup></div>`;

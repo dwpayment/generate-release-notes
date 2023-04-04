@@ -65,6 +65,9 @@ export async function generateReleaseNotes(
     pr.data.labels.some(l => l.name === "refactor")
   )
   const tests = prs.filter(pr => pr.data.labels.some(l => l.name === "test"))
+  const documentations = prs.filter(pr =>
+    pr.data.labels.some(l => l.name === "documentation")
+  )
 
   const migrations = prs.filter(pr =>
     pr.data.labels.some(l => l.name === "migration needed")
@@ -86,6 +89,7 @@ export async function generateReleaseNotes(
   addBodySegment("開発環境整備", chores)
   addBodySegment("リファクタリング", refactors)
   addBodySegment("テスト", tests)
+  addBodySegment("ドキュメント", documentations)
   addBodySegment("マイグレーション必須", migrations)
 
   let others: number[] = prs.map(pr => pr.data.number)
@@ -108,6 +112,10 @@ export async function generateReleaseNotes(
   others = lodash.difference(
     others,
     tests.map(pr => pr.data.number)
+  )
+  others = lodash.difference(
+    others,
+    documentations.map(pr => pr.data.number)
   )
   others = lodash.difference(
     others,
