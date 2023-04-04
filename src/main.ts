@@ -29,7 +29,10 @@ async function run(): Promise<void> {
       ).data
 
       // Ignore closed issues
-      if (remoteIssue.state === "open") {
+      if (
+        remoteIssue.state === "open" &&
+        remoteIssue.labels.some(l => l === "release")
+      ) {
         issues = [remoteIssue]
       }
     }

@@ -120,7 +120,8 @@ function run() {
                 core.info(`Payload issue: #${(_b = github.context.issue) === null || _b === void 0 ? void 0 : _b.number}`);
                 const remoteIssue = (yield kit.rest.issues.get(Object.assign(Object.assign({}, repo), { issue_number: github.context.issue.number }))).data;
                 // Ignore closed issues
-                if (remoteIssue.state === "open") {
+                if (remoteIssue.state === "open" &&
+                    remoteIssue.labels.some(l => l === "release")) {
                     issues = [remoteIssue];
                 }
             }
