@@ -19,5 +19,5 @@ inputs:
     description: "GITHUB_TOKEN or a repo scoped PAT."
     default: ${{ github.token }}
 runs:
-  using: "node16"
-  main: "dist/index.js"
+  using: node20
+  main: dist/index.js

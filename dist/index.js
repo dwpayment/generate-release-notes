@@ -1,317 +1,5 @@
-require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
+/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
-
-/***/ 3532:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.execute = void 0;
-const exec = __importStar(__nccwpck_require__(1514));
-const execute = (command) => __awaiter(void 0, void 0, void 0, function* () {
-    let output = "";
-    const options = {};
-    options.listeners = {
-        stdout: (data) => {
-            output += data.toString();
-        },
-        stderr: (data) => {
-            console.error(data); // eslint-disable-line no-console
-        }
-    };
-    yield exec.exec(command, undefined, options);
-    return output;
-});
-exports.execute = execute;
-
-
-/***/ }),
-
-/***/ 3109:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core = __importStar(__nccwpck_require__(2186));
-const github = __importStar(__nccwpck_require__(5438));
-const release_notes_1 = __nccwpck_require__(9863);
-const test_procedure_comment_1 = __nccwpck_require__(7650);
-function run() {
-    var _a, _b;
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const base = core.getInput("base", { required: true });
-            const head = core.getInput("head", { required: true });
-            //const template = core.getInput("comment-template")
-            const token = core.getInput("token", { required: true });
-            const isCommentTestProcedure = core
-                .getInput("test-procedure-comment", { required: true })
-                .toLowerCase() === "true";
-            const kit = github.getOctokit(token);
-            const { repo } = github.context;
-            let issues = [];
-            if ((_a = github.context.issue) === null || _a === void 0 ? void 0 : _a.number) {
-                core.info(`Payload issue: #${(_b = github.context.issue) === null || _b === void 0 ? void 0 : _b.number}`);
-                const remoteIssue = (yield kit.rest.issues.get(Object.assign(Object.assign({}, repo), { issue_number: github.context.issue.number }))).data;
-                // Ignore closed issues
-                if (remoteIssue.state === "open" &&
-                    remoteIssue.labels.some(l => l === "release")) {
-                    issues = [remoteIssue];
-                }
-            }
-            if (!issues.some(_ => true))
-                issues = (yield kit.rest.issues.listForRepo(Object.assign(Object.assign({}, repo), { labels: "release", state: "open" }))).data;
-            for (const issue of issues) {
-                core.info(`Processing #${issue.number}`);
-                const comments = (yield kit.rest.issues.listComments(Object.assign(Object.assign({}, repo), { issue_number: issue.number }))).data;
-                yield (0, release_notes_1.generateReleaseNotes)(base, head, kit, comments, issue);
-                isCommentTestProcedure &&
-                    (0, test_procedure_comment_1.generateTestProcedureComment)(kit, comments, issue);
-            }
-        }
-        catch (error) {
-            if (error instanceof Error)
-                core.setFailed(error.message);
-        }
-    });
-}
-run();
-
-
-/***/ }),
-
-/***/ 9863:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.generateReleaseNotes = void 0;
-const execute_1 = __nccwpck_require__(3532);
-const github = __importStar(__nccwpck_require__(5438));
-const lodash_1 = __importDefault(__nccwpck_require__(250));
-function generateReleaseNotes(base, head, kit, comments, issue) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const { repo } = github.context;
-        const baseCommitCommented = comments.find(c => { var _a, _b; return ((_a = c.user) === null || _a === void 0 ? void 0 : _a.type) === "Bot" && ((_b = c.body) === null || _b === void 0 ? void 0 : _b.includes("BASE_COMMIT: ")); });
-        const baseCommitId = ((baseCommitCommented === null || baseCommitCommented === void 0 ? void 0 : baseCommitCommented.body)
-            ? baseCommitCommented.body.replace("BASE_COMMIT: ", "")
-            : yield (0, execute_1.execute)(`git rev-parse ${base}`)).replace("\n", "");
-        if (!baseCommitCommented)
-            yield kit.rest.issues.createComment(Object.assign(Object.assign({ issue_number: issue.number }, repo), { body: `BASE_COMMIT: ${baseCommitId}` }));
-        const numbers = (yield (0, execute_1.execute)(`/bin/bash -c "git log --merges ${baseCommitId}..${head} --first-parent --grep='Merge pull request #' --format='%s' | sed -n 's/^.*Merge pull request #\\s*\\([0-9]*\\).*$/\\1/p'"`)).split("\n");
-        const prs = (yield Promise.allSettled(numbers
-            .map(num => Number(num))
-            .map((num) => __awaiter(this, void 0, void 0, function* () {
-            return kit.rest.pulls.get(Object.assign(Object.assign({}, repo), { pull_number: num }));
-        }))))
-            .filter(pr => pr.status === "fulfilled")
-            .map(pr => {
-            if (pr.status === "rejected")
-                throw new Error(); // HACK
-            return pr.value;
-        });
-        const features = prs.filter(pr => pr.data.labels.some(l => l.name === "enhancement"));
-        const bugs = prs.filter(pr => pr.data.labels.some(l => l.name === "bug"));
-        const chores = prs.filter(pr => pr.data.labels.some(l => l.name === "chore" || l.name === "style"));
-        const refactors = prs.filter(pr => pr.data.labels.some(l => l.name === "refactor"));
-        const tests = prs.filter(pr => pr.data.labels.some(l => l.name === "test"));
-        const documentations = prs.filter(pr => pr.data.labels.some(l => l.name === "documentation"));
-        const migrations = prs.filter(pr => pr.data.labels.some(l => l.name === "migration needed"));
-        let body = "今回のリリースで投入されるPRは以下の通りです。\n\n";
-        const addBodySegment = (name, requests) => {
-            if (!requests.some(_ => true))
-                return;
-            body += [
-                `## ${name}\n\n`,
-                requests.map(r => `* #${r.data.number}`).join("\n"),
-                "\n\n"
-            ].join("");
-        };
-        addBodySegment("機能実装", features);
-        addBodySegment("不具合修正", bugs);
-        addBodySegment("開発環境整備", chores);
-        addBodySegment("リファクタリング", refactors);
-        addBodySegment("テスト", tests);
-        addBodySegment("ドキュメント", documentations);
-        addBodySegment("マイグレーション必須", migrations);
-        let others = prs.map(pr => pr.data.number);
-        others = lodash_1.default.difference(others, features.map(pr => pr.data.number));
-        others = lodash_1.default.difference(others, bugs.map(pr => pr.data.number));
-        others = lodash_1.default.difference(others, chores.map(pr => pr.data.number));
-        others = lodash_1.default.difference(others, refactors.map(pr => pr.data.number));
-        others = lodash_1.default.difference(others, tests.map(pr => pr.data.number));
-        others = lodash_1.default.difference(others, documentations.map(pr => pr.data.number));
-        others = lodash_1.default.difference(others, migrations.map(pr => pr.data.number));
-        addBodySegment("その他", prs.filter(pr => others.includes(pr.data.number)));
-        body += `<div align="right"><sup><sub>by generate-release-notes</sub></sup></div>`;
-        const commented = comments.find(c => { var _a, _b; return ((_a = c.user) === null || _a === void 0 ? void 0 : _a.type) === "Bot" && ((_b = c.body) === null || _b === void 0 ? void 0 : _b.includes("by generate-release-notes")); });
-        const releaseNotesCtx = Object.assign(Object.assign({}, repo), { body });
-        if (commented)
-            yield kit.rest.issues.updateComment(Object.assign({ comment_id: commented.id }, releaseNotesCtx));
-        else
-            yield kit.rest.issues.createComment(Object.assign({ issue_number: issue.number }, releaseNotesCtx));
-    });
-}
-exports.generateReleaseNotes = generateReleaseNotes;
-
-
-/***/ }),
-
-/***/ 7650:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.generateTestProcedureComment = void 0;
-const github = __importStar(__nccwpck_require__(5438));
-function generateTestProcedureComment(kit, comments, issue) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const { repo } = github.context;
-        const signature = "<!-- test procedure DO NOT REMOVE THIS LINE -->";
-        const commented = comments.find(c => { var _a, _b; return ((_a = c.user) === null || _a === void 0 ? void 0 : _a.type) === "Bot" && ((_b = c.body) === null || _b === void 0 ? void 0 : _b.includes(signature)); });
-        if (!commented)
-            yield kit.rest.issues.createComment(Object.assign(Object.assign({ issue_number: issue.number }, repo), { body: `### 検証手順\nここに検証手順を含めてください\n\n${signature}` }));
-    });
-}
-exports.generateTestProcedureComment = generateTestProcedureComment;
-
-
-/***/ }),
 
 /***/ 7351:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
@@ -870,7 +558,7 @@ class OidcClient {
                 .catch(error => {
                 throw new Error(`Failed to get ID Token. \n 
         Error Code : ${error.statusCode}\n 
-        Error Message: ${error.result.message}`);
+        Error Message: ${error.message}`);
             });
             const id_token = (_a = res.result) === null || _a === void 0 ? void 0 : _a.value;
             if (!id_token) {
@@ -28357,6 +28045,300 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 5938:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.execute = void 0;
+const exec = __importStar(__nccwpck_require__(1514));
+const execute = async (command) => {
+    let output = "";
+    const options = {};
+    options.listeners = {
+        stdout: (data) => {
+            output += data.toString();
+        },
+        stderr: (data) => {
+            console.error(data); // eslint-disable-line no-console
+        }
+    };
+    await exec.exec(command, undefined, options);
+    return output;
+};
+exports.execute = execute;
+
+
+/***/ }),
+
+/***/ 399:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(2186));
+const github = __importStar(__nccwpck_require__(5438));
+const release_notes_1 = __nccwpck_require__(9260);
+const test_procedure_comment_1 = __nccwpck_require__(8683);
+async function run() {
+    try {
+        const base = core.getInput("base", { required: true });
+        const head = core.getInput("head", { required: true });
+        //const template = core.getInput("comment-template")
+        const token = core.getInput("token", { required: true });
+        const isCommentTestProcedure = core
+            .getInput("test-procedure-comment", { required: true })
+            .toLowerCase() === "true";
+        const kit = github.getOctokit(token);
+        const { repo } = github.context;
+        let issues = [];
+        if (github.context.issue?.number) {
+            core.info(`Payload issue: #${github.context.issue?.number}`);
+            const remoteIssue = (await kit.rest.issues.get({
+                ...repo,
+                issue_number: github.context.issue.number
+            })).data;
+            // Ignore closed issues
+            if (remoteIssue.state === "open" &&
+                remoteIssue.labels.some(l => l === "release")) {
+                issues = [remoteIssue];
+            }
+        }
+        if (!issues.some(_ => true))
+            issues = (await kit.rest.issues.listForRepo({
+                ...repo,
+                labels: "release",
+                state: "open"
+            })).data;
+        for (const issue of issues) {
+            core.info(`Processing #${issue.number}`);
+            const comments = (await kit.rest.issues.listComments({
+                ...repo,
+                issue_number: issue.number
+            })).data;
+            await (0, release_notes_1.generateReleaseNotes)(base, head, kit, comments, issue);
+            isCommentTestProcedure &&
+                (0, test_procedure_comment_1.generateTestProcedureComment)(kit, comments, issue);
+        }
+    }
+    catch (error) {
+        if (error instanceof Error)
+            core.setFailed(error.message);
+    }
+}
+run();
+
+
+/***/ }),
+
+/***/ 9260:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.generateReleaseNotes = void 0;
+const execute_1 = __nccwpck_require__(5938);
+const github = __importStar(__nccwpck_require__(5438));
+const lodash_1 = __importDefault(__nccwpck_require__(250));
+async function generateReleaseNotes(base, head, kit, comments, issue) {
+    const { repo } = github.context;
+    const baseCommitCommented = comments.find(c => c.user?.type === "Bot" && c.body?.includes("BASE_COMMIT: "));
+    const baseCommitId = (baseCommitCommented?.body
+        ? baseCommitCommented.body.replace("BASE_COMMIT: ", "")
+        : await (0, execute_1.execute)(`git rev-parse ${base}`)).replace("\n", "");
+    if (!baseCommitCommented)
+        await kit.rest.issues.createComment({
+            issue_number: issue.number,
+            ...repo,
+            body: `BASE_COMMIT: ${baseCommitId}`
+        });
+    const numbers = (await (0, execute_1.execute)(`/bin/bash -c "git log --merges ${baseCommitId}..${head} --first-parent --grep='Merge pull request #' --format='%s' | sed -n 's/^.*Merge pull request #\\s*\\([0-9]*\\).*$/\\1/p'"`)).split("\n");
+    const prs = (await Promise.allSettled(numbers
+        .map(num => Number(num))
+        .map(async (num) => kit.rest.pulls.get({
+        ...repo,
+        pull_number: num
+    }))))
+        .filter(pr => pr.status === "fulfilled")
+        .map(pr => {
+        if (pr.status === "rejected")
+            throw new Error(); // HACK
+        return pr.value;
+    });
+    const features = prs.filter(pr => pr.data.labels.some(l => l.name === "enhancement"));
+    const bugs = prs.filter(pr => pr.data.labels.some(l => l.name === "bug"));
+    const chores = prs.filter(pr => pr.data.labels.some(l => l.name === "chore" || l.name === "style"));
+    const refactors = prs.filter(pr => pr.data.labels.some(l => l.name === "refactor"));
+    const tests = prs.filter(pr => pr.data.labels.some(l => l.name === "test"));
+    const documentations = prs.filter(pr => pr.data.labels.some(l => l.name === "documentation"));
+    const migrations = prs.filter(pr => pr.data.labels.some(l => l.name === "migration needed"));
+    let body = "今回のリリースで投入されるPRは以下の通りです。\n\n";
+    const addBodySegment = (name, requests) => {
+        if (!requests.some(_ => true))
+            return;
+        body += [
+            `## ${name}\n\n`,
+            requests.map(r => `* #${r.data.number}`).join("\n"),
+            "\n\n"
+        ].join("");
+    };
+    addBodySegment("機能実装", features);
+    addBodySegment("不具合修正", bugs);
+    addBodySegment("開発環境整備", chores);
+    addBodySegment("リファクタリング", refactors);
+    addBodySegment("テスト", tests);
+    addBodySegment("ドキュメント", documentations);
+    addBodySegment("マイグレーション必須", migrations);
+    let others = prs.map(pr => pr.data.number);
+    others = lodash_1.default.difference(others, features.map(pr => pr.data.number));
+    others = lodash_1.default.difference(others, bugs.map(pr => pr.data.number));
+    others = lodash_1.default.difference(others, chores.map(pr => pr.data.number));
+    others = lodash_1.default.difference(others, refactors.map(pr => pr.data.number));
+    others = lodash_1.default.difference(others, tests.map(pr => pr.data.number));
+    others = lodash_1.default.difference(others, documentations.map(pr => pr.data.number));
+    others = lodash_1.default.difference(others, migrations.map(pr => pr.data.number));
+    addBodySegment("その他", prs.filter(pr => others.includes(pr.data.number)));
+    body += `<div align="right"><sup><sub>by generate-release-notes</sub></sup></div>`;
+    const commented = comments.find(c => c.user?.type === "Bot" && c.body?.includes("by generate-release-notes"));
+    const releaseNotesCtx = { ...repo, body };
+    if (commented)
+        await kit.rest.issues.updateComment({
+            comment_id: commented.id,
+            ...releaseNotesCtx
+        });
+    else
+        await kit.rest.issues.createComment({
+            issue_number: issue.number,
+            ...releaseNotesCtx
+        });
+}
+exports.generateReleaseNotes = generateReleaseNotes;
+
+
+/***/ }),
+
+/***/ 8683:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.generateTestProcedureComment = void 0;
+const github = __importStar(__nccwpck_require__(5438));
+async function generateTestProcedureComment(kit, comments, issue) {
+    const { repo } = github.context;
+    const signature = "<!-- test procedure DO NOT REMOVE THIS LINE -->";
+    const commented = comments.find(c => c.user?.type === "Bot" && c.body?.includes(signature));
+    if (!commented)
+        await kit.rest.issues.createComment({
+            issue_number: issue.number,
+            ...repo,
+            body: `### 検証手順\nここに検証手順を含めてください\n\n${signature}`
+        });
+}
+exports.generateTestProcedureComment = generateTestProcedureComment;
+
+
+/***/ }),
+
 /***/ 2877:
 /***/ ((module) => {
 
@@ -28571,9 +28553,8 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(3109);
+/******/ 	var __webpack_exports__ = __nccwpck_require__(399);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()
 ;
-//# sourceMappingURL=index.js.map
